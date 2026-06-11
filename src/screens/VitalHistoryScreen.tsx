@@ -195,7 +195,17 @@ export function VitalHistoryScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={header}
         renderItem={({ item }) => (
-          <ReadingRow reading={item} onDelete={() => confirmDelete(item)} />
+          <ReadingRow
+            reading={item}
+            onPress={() =>
+              navigation.navigate('LogReading', {
+                memberId,
+                type,
+                readingId: item.id,
+              })
+            }
+            onDelete={() => confirmDelete(item)}
+          />
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={

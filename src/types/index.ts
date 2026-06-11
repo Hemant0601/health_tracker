@@ -52,6 +52,18 @@ export interface SimpleReading extends ReadingBase {
 
 export type Reading = BpReading | SugarReading | SimpleReading;
 
+export interface Reminder {
+  id: string;
+  memberId: string;
+  type: VitalType;
+  hour: number;
+  minute: number;
+  enabled: boolean;
+  /** expo-notifications schedule id while the reminder is active */
+  notificationId?: string;
+  createdAt: string;
+}
+
 /** Omit that distributes across union members (plain Omit collapses unions). */
 export type DistributiveOmit<T, K extends keyof never> = T extends unknown
   ? Omit<T, K>

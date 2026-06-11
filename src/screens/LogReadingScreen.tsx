@@ -97,22 +97,42 @@ export function LogReadingScreen() {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'LogReading'>>();
   const lockedMemberId = route.params?.memberId;
-  const initialType = route.params?.type ?? 'bp';
+  const readingId = route.params?.readingId;
 
-  const { members, addReading } = useApp();
+  const { members, readings, addReading, updateReading } = useApp();
   const insets = useSafeAreaInsets();
 
+  const editing = readingId
+    ? readings.find((r) => r.id === readingId)
+    : undefined;
+  const isEditing = !!editing;
+  const initialType = editing?.type ?? route.params?.type ?? 'bp';
+
   const [memberId, setMemberId] = useState(
-    lockedMemberId ?? members[0]?.id ?? ''
+    editing?.memberId ?? lockedMemberId ?? members[0]?.id ?? ''
   );
   const [type, setType] = useState<VitalType>(initialType);
-  const [systolic, setSystolic] = useState('');
-  const [diastolic, setDiastolic] = useState('');
-  const [pulse, setPulse] = useState('');
-  const [value, setValue] = useState('');
-  const [sugarContext, setSugarContext] = useState<SugarContext>('fasting');
-  const [note, setNote] = useState('');
-  const [takenAt, setTakenAt] = useState(new Date());
+  const [systolic, setSystolic] = useState(
+    editing?.type === 'bp' ? String(editing.systolic) : ''
+  );
+  const [diastolic, setDiastolic] = useState(
+    editing?.type === 'bp' ? String(editing.diastolic) : ''
+  );
+  const [pulse, setPulse] = useState(
+    editing?.type === 'bp' && editing.pulse != null
+      ? String(editing.pulse)
+      : ''
+  );
+  const [value, setValue] = useState(
+    editing && editing.type !== 'bp' ? String(editing.value) : ''
+  );
+  const [sugarContext, setSugarContext] = useState<SugarContext>(
+    editing?.type === 'sugar' ? editing.context : 'fasting'
+  );
+  const [note, setNote] = useState(editing?.note ?? '');
+  const [takenAt, setTakenAt] = useState(
+    editing ? new Date(editing.takenAt) : new Date()
+  );
   const [picker, setPicker] = useState<'date' | 'time' | null>(null);
   const [attempted, setAttempted] = useState(false);
 
@@ -216,7 +236,11 @@ export function LogReadingScreen() {
   const save = () => {
     setAttempted(true);
     if (!reading || !memberId) return;
-    addReading(reading);
+    if (editing) {
+      updateReading(editing.id, reading);
+    } else {
+      addReading(reading);
+    }
     navigation.goBack();
   };
 
@@ -240,7 +264,10 @@ export function LogReadingScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScreenHeader title="Log Reading" subtitle={member?.name} />
+      <ScreenHeader
+        title={isEditing ? 'Edit Reading' : 'Log Reading'}
+        subtitle={member?.name}
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -250,7 +277,7 @@ export function LogReadingScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {!lockedMemberId ? (
+          {!lockedMemberId && !isEditing ? (
             <>
               <Text style={styles.label}>Member</Text>
               <ScrollView
@@ -270,19 +297,23 @@ export function LogReadingScreen() {
             </>
           ) : null}
 
-          <Text style={styles.label}>Vital</Text>
-          <View style={styles.chipWrap}>
-            {VITAL_ORDER.map((t) => (
-              <Chip
-                key={t}
-                label={VITALS[t].shortLabel}
-                icon={VITALS[t].icon}
-                accent={VITALS[t].color}
-                selected={type === t}
-                onPress={() => switchType(t)}
-              />
-            ))}
-          </View>
+          {!isEditing ? (
+            <>
+              <Text style={styles.label}>Vital</Text>
+              <View style={styles.chipWrap}>
+                {VITAL_ORDER.map((t) => (
+                  <Chip
+                    key={t}
+                    label={VITALS[t].shortLabel}
+                    icon={VITALS[t].icon}
+                    accent={VITALS[t].color}
+                    selected={type === t}
+                    onPress={() => switchType(t)}
+                  />
+                ))}
+              </View>
+            </>
+          ) : null}
 
           <Text style={styles.label}>
             {config.label} ({config.unit})
@@ -438,7 +469,10 @@ export function LogReadingScreen() {
             { paddingBottom: Math.max(insets.bottom, spacing.lg) },
           ]}
         >
-          <PrimaryButton label="Save Reading" onPress={save} />
+          <PrimaryButton
+            label={isEditing ? 'Save Changes' : 'Save Reading'}
+            onPress={save}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

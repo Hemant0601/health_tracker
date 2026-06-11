@@ -4,12 +4,13 @@ import {
   type Theme,
 } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppProvider } from './src/context/AppContext';
 import { RootNavigator } from './src/navigation';
 import { colors } from './src/theme';
+import { initNotifications } from './src/utils/notifications';
 
 const navTheme: Theme = {
   ...DefaultTheme,
@@ -24,6 +25,10 @@ const navTheme: Theme = {
 };
 
 export default function App() {
+  useEffect(() => {
+    initNotifications();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <AppProvider>

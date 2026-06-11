@@ -11,6 +11,9 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList> | undefined;
   MemberDetail: { memberId: string };
   MemberForm: { memberId?: string } | undefined;
-  LogReading: { memberId?: string; type?: VitalType } | undefined;
+  LogReading:
+    | { memberId?: string; type?: VitalType; readingId?: string }
+    | undefined;
   VitalHistory: { memberId: string; type: VitalType };
+  Reminders: { memberId: string };
 };

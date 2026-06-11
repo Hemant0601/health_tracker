@@ -9,6 +9,9 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 - **Smart status** — every reading is classified against standard medical reference ranges (e.g. AHA blood-pressure stages, ADA glucose ranges) and color-coded: Low / Normal / Elevated / High / Critical.
 - **Live preview** — see the status of a reading as you type, before saving.
 - **Trends** — per-vital history with an SVG trend chart (dual-line for BP), average / lowest / highest stats, and BMI (when height is set).
+- **Edit & delete** — tap any reading in a vital's history to correct it, or delete it.
+- **Daily reminders** — schedule per-member, per-vital local notifications (e.g. "BP check for Dad, daily at 8:00 AM"). Works offline, no push server.
+- **CSV export** — share a member's full reading history as a CSV (WhatsApp, email, …) for doctor visits.
 - **Home dashboard** — greeting, weekly reading count, out-of-range alerts, and recent activity across all members.
 - **Offline-first** — everything is stored locally with AsyncStorage. No account, no server, no data leaves the phone.
 
@@ -20,6 +23,8 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 | Navigation | React Navigation 7 (bottom tabs + native stack) |
 | Storage | `@react-native-async-storage/async-storage` |
 | Charts | Custom chart built on `react-native-svg` |
+| Reminders | `expo-notifications` (local scheduled notifications) |
+| Export | `expo-file-system` + `expo-sharing` |
 | Icons | `@expo/vector-icons` (Ionicons + MaterialCommunityIcons) |
 
 ## Project Structure
@@ -30,11 +35,12 @@ src/
   constants/    Vital definitions, reference ranges, profile options
   context/      AppContext — members + readings state, persistence
   navigation/   Root stack + bottom tabs, typed param lists
-  screens/      Home, Members, MemberDetail, MemberForm, LogReading, VitalHistory
+  screens/      Home, Members, MemberDetail, MemberForm, LogReading,
+                VitalHistory, Reminders
   storage/      AsyncStorage data layer
   theme/        Colors, spacing, radii, shadows
-  types/        Member / Reading models
-  utils/        Health-status evaluation, date helpers
+  types/        Member / Reading / Reminder models
+  utils/        Health-status evaluation, dates, CSV export, notifications
 scripts/
   make-icons.js Regenerates the app icon set (no image deps)
 ```

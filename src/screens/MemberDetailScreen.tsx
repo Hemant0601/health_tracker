@@ -14,6 +14,7 @@ import { useApp, useMember, useMemberReadings } from '../context/AppContext';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import type { Reading, VitalType } from '../types';
+import { buildReadingsCsv, csvFilename, shareCsv, slugify } from '../utils/csv';
 import { calcAge } from '../utils/format';
 
 export function MemberDetailScreen() {
@@ -43,6 +44,29 @@ export function MemberDetailScreen() {
     member.gender.charAt(0).toUpperCase() + member.gender.slice(1),
     member.heightCm ? `${member.heightCm} cm` : null,
   ].filter((c): c is string => !!c);
+
+  const exportCsv = async () => {
+    if (memberReadings.length === 0) {
+      Alert.alert('Nothing to export', 'Log a reading first.');
+      return;
+    }
+    try {
+      const csv = buildReadingsCsv(
+        memberReadings,
+        new Map([[member.id, member]])
+      );
+      const shared = await shareCsv(csvFilename(slugify(member.name)), csv);
+      if (!shared) {
+        Alert.alert(
+          'Sharing unavailable',
+          'Sharing is not available on this device.'
+        );
+      }
+    } catch (e) {
+      console.warn('CSV export failed', e);
+      Alert.alert('Something went wrong', 'Could not export the readings.');
+    }
+  };
 
   const confirmDelete = () => {
     Alert.alert(
@@ -106,6 +130,26 @@ export function MemberDetailScreen() {
             navigation.navigate('LogReading', { memberId: member.id })
           }
         />
+        <View style={styles.secondaryActions}>
+          <View style={styles.secondaryItem}>
+            <PrimaryButton
+              label="Reminders"
+              icon="notifications-outline"
+              variant="outline"
+              onPress={() =>
+                navigation.navigate('Reminders', { memberId: member.id })
+              }
+            />
+          </View>
+          <View style={styles.secondaryItem}>
+            <PrimaryButton
+              label="Export CSV"
+              icon="share-outline"
+              variant="outline"
+              onPress={() => void exportCsv()}
+            />
+          </View>
+        </View>
 
         <Text style={styles.sectionTitle}>Vitals</Text>
         <View style={styles.grid}>
@@ -191,6 +235,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.textMuted,
+  },
+  secondaryActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  secondaryItem: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 17,

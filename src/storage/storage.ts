@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { Member, Reading } from '../types';
+import type { Member, Reading, Reminder } from '../types';
 
 const MEMBERS_KEY = 'health_tracker.members';
 const READINGS_KEY = 'health_tracker.readings';
+const REMINDERS_KEY = 'health_tracker.reminders';
 
 async function loadJson<T>(key: string, fallback: T): Promise<T> {
   try {
@@ -37,4 +38,12 @@ export function loadReadings(): Promise<Reading[]> {
 
 export function saveReadings(readings: Reading[]): Promise<void> {
   return saveJson(READINGS_KEY, readings);
+}
+
+export function loadReminders(): Promise<Reminder[]> {
+  return loadJson<Reminder[]>(REMINDERS_KEY, []);
+}
+
+export function saveReminders(reminders: Reminder[]): Promise<void> {
+  return saveJson(REMINDERS_KEY, reminders);
 }

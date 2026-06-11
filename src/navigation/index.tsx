@@ -10,6 +10,7 @@ import { LogReadingScreen } from '../screens/LogReadingScreen';
 import { MemberDetailScreen } from '../screens/MemberDetailScreen';
 import { MemberFormScreen } from '../screens/MemberFormScreen';
 import { MembersScreen } from '../screens/MembersScreen';
+import { RemindersScreen } from '../screens/RemindersScreen';
 import { VitalHistoryScreen } from '../screens/VitalHistoryScreen';
 import { colors } from '../theme';
 import type { RootStackParamList, TabParamList } from './types';
@@ -81,6 +82,7 @@ export function RootNavigator() {
       <Stack.Screen name="MemberForm" component={MemberFormScreen} />
       <Stack.Screen name="LogReading" component={LogReadingScreen} />
       <Stack.Screen name="VitalHistory" component={VitalHistoryScreen} />
+      <Stack.Screen name="Reminders" component={RemindersScreen} />
     </Stack.Navigator>
   );
 }
