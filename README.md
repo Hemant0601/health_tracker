@@ -57,13 +57,27 @@ Then either:
 - **Phone** — install [Expo Go](https://expo.dev/go) (Android/iOS) and scan the QR code from the terminal.
 - **Emulator** — press `a` for Android emulator or `i` for iOS simulator.
 
-### Build an installable app
+### Build an installable APK
+
+**Option A — locally** (needs JDK 17 and the Android SDK; no account required):
+
+```bash
+npx expo prebuild --platform android
+cd android && ./gradlew :app:assembleRelease
+# → android/app/build/outputs/apk/release/app-release.apk
+```
+
+Note: the React Native Gradle plugin compiles with a JDK 17 toolchain — have JDK 17 installed even if your default JDK is newer.
+
+**Option B — EAS cloud build** (free Expo account, no local Android SDK):
 
 ```bash
 npm install -g eas-cli
-eas build --platform android   # produces an APK/AAB
-eas build --platform ios
+eas login
+eas build --platform android --profile preview   # produces an APK
 ```
+
+The `preview` profile in `eas.json` is configured to output an APK (the default `production` profile builds an AAB for Play Store submission).
 
 ## Health Reference Ranges
 
