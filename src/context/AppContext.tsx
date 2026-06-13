@@ -23,10 +23,18 @@ import type {
   Reading,
   Reminder,
 } from '../types';
+import type { ParsedImport } from '../utils/csv';
 import { makeId } from '../utils/id';
 import { cancelReminderNotification } from '../utils/notifications';
 
 type NewReminder = Omit<Reminder, 'id' | 'createdAt'>;
+
+export interface ImportResult {
+  membersAdded: number;
+  membersMatched: number;
+  readingsAdded: number;
+  readingsSkipped: number;
+}
 
 interface AppContextValue {
   isReady: boolean;
@@ -42,6 +50,7 @@ interface AppContextValue {
   addReminder: (data: NewReminder) => Reminder;
   updateReminder: (id: string, patch: Partial<NewReminder>) => void;
   deleteReminder: (id: string) => void;
+  importData: (parsed: ParsedImport) => ImportResult;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -50,12 +59,28 @@ function sortByTakenAtDesc(readings: Reading[]): Reading[] {
   return [...readings].sort((a, b) => b.takenAt.localeCompare(a.takenAt));
 }
 
+/** Identity of a reading for import de-duplication (ignores id/createdAt). */
+function readingSignature(r: Reading): string {
+  const core =
+    r.type === 'bp'
+      ? `${r.systolic}/${r.diastolic}/${r.pulse ?? ''}`
+      : r.type === 'sugar'
+        ? `${r.value}/${r.context}`
+        : `${r.value}`;
+  return `${r.memberId}|${r.type}|${r.takenAt}|${core}`;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const hydrated = useRef(false);
+  // Fresh snapshots for actions that read current state without re-binding.
+  const membersRef = useRef<Member[]>(members);
+  const readingsRef = useRef<Reading[]>(readings);
+  membersRef.current = members;
+  readingsRef.current = readings;
 
   useEffect(() => {
     (async () => {
@@ -168,6 +193,66 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [reminders]
   );
 
+  const importData = useCallback((parsed: ParsedImport): ImportResult => {
+    const result: ImportResult = {
+      membersAdded: 0,
+      membersMatched: 0,
+      readingsAdded: 0,
+      readingsSkipped: 0,
+    };
+
+    const nextMembers = [...membersRef.current];
+    const nextReadings = [...readingsRef.current];
+    const signatures = new Set(nextReadings.map(readingSignature));
+
+    // Resolve each imported group to an existing or new member, then add its
+    // readings while skipping exact duplicates.
+    for (const group of parsed.groups) {
+      const match = nextMembers.find(
+        (m) =>
+          m.name.trim().toLowerCase() ===
+            group.member.name.trim().toLowerCase() &&
+          m.relation.trim().toLowerCase() ===
+            group.member.relation.trim().toLowerCase()
+      );
+      let memberId: string;
+      if (match) {
+        memberId = match.id;
+        result.membersMatched++;
+      } else {
+        const created: Member = {
+          ...group.member,
+          id: makeId(),
+          createdAt: new Date().toISOString(),
+        };
+        nextMembers.push(created);
+        memberId = created.id;
+        result.membersAdded++;
+      }
+
+      for (const r of group.readings) {
+        const reading = {
+          ...r,
+          memberId,
+          id: makeId(),
+          createdAt: new Date().toISOString(),
+        } as Reading;
+        const sig = readingSignature(reading);
+        if (signatures.has(sig)) {
+          result.readingsSkipped++;
+          continue;
+        }
+        signatures.add(sig);
+        nextReadings.push(reading);
+        result.readingsAdded++;
+      }
+    }
+
+    if (result.membersAdded > 0) setMembers(nextMembers);
+    if (result.readingsAdded > 0) setReadings(sortByTakenAtDesc(nextReadings));
+    return result;
+  }, []);
+
   const value = useMemo(
     () => ({
       isReady,
@@ -183,6 +268,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addReminder,
       updateReminder,
       deleteReminder,
+      importData,
     }),
     [
       isReady,
@@ -198,6 +284,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addReminder,
       updateReminder,
       deleteReminder,
+      importData,
     ]
   );
 

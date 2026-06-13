@@ -51,10 +51,7 @@ export function MemberDetailScreen() {
       return;
     }
     try {
-      const csv = buildReadingsCsv(
-        memberReadings,
-        new Map([[member.id, member]])
-      );
+      const csv = buildReadingsCsv(memberReadings, [member]);
       const shared = await shareCsv(csvFilename(slugify(member.name)), csv);
       if (!shared) {
         Alert.alert(

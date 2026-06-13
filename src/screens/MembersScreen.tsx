@@ -8,8 +8,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '../components/Avatar';
 import { EmptyState } from '../components/EmptyState';
 import { FAB } from '../components/FAB';
+import { HeaderIconButton } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { VITALS } from '../constants/vitals';
+import { useDataTransfer } from '../hooks/useDataTransfer';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme';
 import type { Member, Reading } from '../types';
@@ -80,6 +82,7 @@ export function MembersScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { members, readings } = useApp();
+  const { exportReadings, importReadings } = useDataTransfer();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -91,6 +94,18 @@ export function MembersScreen() {
               ? 'Add the people you care for'
               : `${members.length} ${members.length === 1 ? 'member' : 'members'}`}
           </Text>
+        </View>
+        <View style={styles.headerActions}>
+          <HeaderIconButton
+            icon="cloud-upload-outline"
+            onPress={() => void importReadings()}
+          />
+          {members.length > 0 ? (
+            <HeaderIconButton
+              icon="share-outline"
+              onPress={() => void exportReadings()}
+            />
+          ) : null}
         </View>
       </View>
       <FlatList
@@ -137,6 +152,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   title: {
     fontSize: 24,

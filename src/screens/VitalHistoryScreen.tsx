@@ -16,7 +16,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, spacing } from '../theme';
 import type { BpReading, Reading } from '../types';
 import { fmtNum, formatShortDate } from '../utils/format';
-import { calcBmi, readingValueText } from '../utils/health';
+import { calcBmi } from '../utils/health';
 
 const CHART_POINTS = 20;
 
@@ -79,17 +79,25 @@ export function VitalHistoryScreen() {
     if (readings.length === 0) return [];
     if (type === 'bp') {
       const bp = readings as BpReading[];
-      const avgSys = bp.reduce((s, r) => s + r.systolic, 0) / bp.length;
-      const avgDia = bp.reduce((s, r) => s + r.diastolic, 0) / bp.length;
-      const highest = bp.reduce((a, b) => (b.systolic > a.systolic ? b : a));
-      const lowest = bp.reduce((a, b) => (b.systolic < a.systolic ? b : a));
+      const sys = bp.map((r) => r.systolic);
+      const dia = bp.map((r) => r.diastolic);
+      const avgSys = sys.reduce((s, v) => s + v, 0) / bp.length;
+      const avgDia = dia.reduce((s, v) => s + v, 0) / bp.length;
+      // Min/max are taken per component, so "highest" pairs the highest
+      // systolic with the highest diastolic across all readings.
       return [
         {
           label: 'Average',
           value: `${Math.round(avgSys)}/${Math.round(avgDia)}`,
         },
-        { label: 'Lowest', value: readingValueText(lowest) },
-        { label: 'Highest', value: readingValueText(highest) },
+        {
+          label: 'Lowest',
+          value: `${Math.min(...sys)}/${Math.min(...dia)}`,
+        },
+        {
+          label: 'Highest',
+          value: `${Math.max(...sys)}/${Math.max(...dia)}`,
+        },
       ];
     }
     const values = readings.map((r) => (r.type === 'bp' ? 0 : r.value));

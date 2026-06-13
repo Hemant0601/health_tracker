@@ -20,16 +20,23 @@ export const STATUS_COLORS: Record<
   critical: { color: '#9F1239', soft: '#FFE4E6' },
 };
 
+// Classification follows the ESC/ESH (also used in Indian) guidelines, where
+// hypertension begins at 140/90. A reading takes the worse of its systolic and
+// diastolic category, so e.g. 121/92 is flagged on the diastolic.
 function bpStatus(systolic: number, diastolic: number): VitalStatus {
   if (systolic >= 180 || diastolic >= 120)
-    return { level: 'critical', label: 'Crisis' };
+    return { level: 'critical', label: 'Hypertensive crisis' };
+  if (systolic < 90 || diastolic < 60)
+    return { level: 'low', label: 'Low' };
+  if (systolic >= 160 || diastolic >= 100)
+    return { level: 'high', label: 'High · Grade 2' };
   if (systolic >= 140 || diastolic >= 90)
-    return { level: 'high', label: 'High · Stage 2' };
-  if (systolic >= 130 || diastolic >= 80)
-    return { level: 'high', label: 'High · Stage 1' };
-  if (systolic >= 120) return { level: 'elevated', label: 'Elevated' };
-  if (systolic < 90 || diastolic < 60) return { level: 'low', label: 'Low' };
-  return { level: 'normal', label: 'Normal' };
+    return { level: 'high', label: 'High · Grade 1' };
+  if (systolic >= 130 || diastolic >= 85)
+    return { level: 'elevated', label: 'High–normal' };
+  if (systolic >= 120 || diastolic >= 80)
+    return { level: 'normal', label: 'Normal' };
+  return { level: 'normal', label: 'Optimal' };
 }
 
 function sugarStatus(

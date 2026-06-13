@@ -6,12 +6,12 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 
 - **Family members** — add the people you care for with relation, gender, date of birth, height, and an avatar color. Edit or remove them anytime.
 - **6 vitals** — Blood Pressure (systolic/diastolic + pulse), Blood Sugar (fasting / post-meal / random), Heart Rate, SpO₂, Weight, and Body Temperature.
-- **Smart status** — every reading is classified against standard medical reference ranges (e.g. AHA blood-pressure stages, ADA glucose ranges) and color-coded: Low / Normal / Elevated / High / Critical.
+- **Smart status** — every reading is classified against standard medical reference ranges (ESC/ESH blood-pressure grades, ADA glucose ranges) and color-coded: Low / Normal / Elevated / High / Critical.
 - **Live preview** — see the status of a reading as you type, before saving.
-- **Trends** — per-vital history with an SVG trend chart (dual-line for BP), average / lowest / highest stats, and BMI (when height is set).
+- **Trends** — per-vital history with an SVG trend chart (dual-line for BP), average / lowest / highest stats (computed per component for BP), and BMI (when height is set).
 - **Edit & delete** — tap any reading in a vital's history to correct it, or delete it.
 - **Daily reminders** — schedule per-member, per-vital local notifications (e.g. "BP check for Dad, daily at 8:00 AM"). Works offline, no push server.
-- **CSV export** — share a member's full reading history as a CSV (WhatsApp, email, …) for doctor visits.
+- **CSV export & import** — share one member's history, or all members in a single file (patient details + every reading). The same file can be imported on another phone, merging members and skipping duplicates — so families can pool readings or hand data to a doctor.
 - **Home dashboard** — greeting, weekly reading count, out-of-range alerts, and recent activity across all members.
 - **Offline-first** — everything is stored locally with AsyncStorage. No account, no server, no data leaves the phone.
 
@@ -24,7 +24,7 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 | Storage | `@react-native-async-storage/async-storage` |
 | Charts | Custom chart built on `react-native-svg` |
 | Reminders | `expo-notifications` (local scheduled notifications) |
-| Export | `expo-file-system` + `expo-sharing` |
+| Export / Import | `expo-file-system` · `expo-sharing` · `expo-document-picker` |
 | Icons | `@expo/vector-icons` (Ionicons + MaterialCommunityIcons) |
 
 ## Project Structure
@@ -33,14 +33,15 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 src/
   components/   Reusable UI (cards, chips, badges, trend chart, …)
   constants/    Vital definitions, reference ranges, profile options
-  context/      AppContext — members + readings state, persistence
+  context/      AppContext — members + readings + import, persistence
+  hooks/        useDataTransfer — CSV export & import flow
   navigation/   Root stack + bottom tabs, typed param lists
   screens/      Home, Members, MemberDetail, MemberForm, LogReading,
                 VitalHistory, Reminders
   storage/      AsyncStorage data layer
   theme/        Colors, spacing, radii, shadows
   types/        Member / Reading / Reminder models
-  utils/        Health-status evaluation, dates, CSV export, notifications
+  utils/        Health-status evaluation, dates, CSV export/import, notifications
 scripts/
   make-icons.js Regenerates the app icon set (no image deps)
 ```
@@ -83,7 +84,7 @@ The `preview` profile in `eas.json` is configured to output an APK (the default 
 
 | Vital | Normal | Flagged |
 | --- | --- | --- |
-| Blood Pressure | < 120/80 mmHg | Elevated 120–129 · High S1 130–139/80–89 · High S2 ≥ 140/90 · Crisis ≥ 180/120 |
+| Blood Pressure | up to 129/84 mmHg (Optimal < 120/80) | High–normal 130–139/85–89 · High Grade 1 ≥ 140/90 · Grade 2 ≥ 160/100 · Crisis ≥ 180/120 · Low < 90/60 |
 | Blood Sugar (fasting) | 70–99 mg/dL | Prediabetic 100–125 · Diabetic ≥ 126 · Low < 70 |
 | Blood Sugar (post-meal) | < 140 mg/dL | Prediabetic 140–199 · Diabetic ≥ 200 |
 | Heart Rate | 60–100 bpm | Low < 60 · Elevated 101–120 · High > 120 |

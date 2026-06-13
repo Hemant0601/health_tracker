@@ -28,7 +28,7 @@ export const VITALS: Record<VitalType, VitalConfig> = {
     color: '#E11D48',
     softColor: '#FFE4E6',
     referenceNote:
-      'Normal: below 120/80 · Elevated: 120–129 systolic · High (S1): 130–139 / 80–89 · High (S2): 140+/90+ · Crisis: 180+/120+',
+      'Optimal: below 120/80 · Normal: up to 129/84 · High–normal: 130–139 / 85–89 · High Grade 1: 140–159 / 90–99 · Grade 2: 160+/100+ · Crisis: 180+/120+',
   },
   sugar: {
     type: 'sugar',
