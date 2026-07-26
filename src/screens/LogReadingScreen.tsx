@@ -40,7 +40,15 @@ import type {
   VitalType,
 } from '../types';
 import { formatShortDate, formatTime } from '../utils/format';
-import { evaluateReading, readingValueText } from '../utils/health';
+import { evaluateReading } from '../utils/health';
+import {
+  displayBounds,
+  displayValue,
+  formatReadingValue,
+  placeholderFor,
+  toCanonical,
+  unitLabel,
+} from '../utils/units';
 
 function parseNum(s: string): number | null {
   const t = s.trim().replace(',', '.');
@@ -99,7 +107,7 @@ export function LogReadingScreen() {
   const lockedMemberId = route.params?.memberId;
   const readingId = route.params?.readingId;
 
-  const { members, readings, addReading, updateReading } = useApp();
+  const { members, readings, addReading, updateReading, units } = useApp();
   const insets = useSafeAreaInsets();
 
   const editing = readingId
@@ -124,7 +132,9 @@ export function LogReadingScreen() {
       : ''
   );
   const [value, setValue] = useState(
-    editing && editing.type !== 'bp' ? String(editing.value) : ''
+    editing && editing.type !== 'bp'
+      ? String(displayValue(editing.type, editing.value, units))
+      : ''
   );
   const [sugarContext, setSugarContext] = useState<SugarContext>(
     editing?.type === 'sugar' ? editing.context : 'fasting'
@@ -199,25 +209,35 @@ export function LogReadingScreen() {
 
     const boundsKey = type === 'sugar' ? 'sugar' : type;
     const bounds = INPUT_BOUNDS[boundsKey as keyof typeof INPUT_BOUNDS];
-    const v = parseNum(value);
-    if (v == null) errs.value = 'Required';
-    else if (v < bounds.min || v > bounds.max)
-      errs.value = `Enter a value between ${bounds.min} and ${bounds.max}`;
+    // The user types in their chosen unit; bounds are defined canonically.
+    const entered = parseNum(value);
+    const canonical = entered == null ? null : toCanonical(type, entered, units);
+    if (entered == null || canonical == null) {
+      errs.value = 'Required';
+    } else if (canonical < bounds.min || canonical > bounds.max) {
+      const db = displayBounds(type, bounds, units);
+      errs.value = `Enter a value between ${db.min} and ${db.max}`;
+    }
 
-    if (v == null || Object.keys(errs).length > 0)
+    if (canonical == null || Object.keys(errs).length > 0)
       return { reading: null, errors: errs };
 
     if (type === 'sugar') {
       return {
-        reading: { ...base, type: 'sugar', value: v, context: sugarContext },
+        reading: {
+          ...base,
+          type: 'sugar',
+          value: canonical,
+          context: sugarContext,
+        },
         errors: errs,
       };
     }
     return {
-      reading: { ...base, type, value: v },
+      reading: { ...base, type, value: canonical },
       errors: errs,
     };
-  }, [type, memberId, takenAt, note, systolic, diastolic, pulse, value, sugarContext]);
+  }, [type, memberId, takenAt, note, systolic, diastolic, pulse, value, sugarContext, units]);
 
   const previewReading: Reading | null = reading
     ? ({ ...reading, id: 'preview', createdAt: '' } as Reading)
@@ -316,7 +336,7 @@ export function LogReadingScreen() {
           ) : null}
 
           <Text style={styles.label}>
-            {config.label} ({config.unit})
+            {config.label} ({unitLabel(type, units)})
           </Text>
           {type === 'bp' ? (
             <View style={styles.inputRow}>
@@ -351,22 +371,12 @@ export function LogReadingScreen() {
           ) : (
             <>
               <FormField
-                label={`Value (${config.unit})`}
+                label={`Value (${unitLabel(type, units)})`}
                 value={value}
                 onChangeText={setValue}
-                placeholder={
-                  type === 'sugar'
-                    ? '98'
-                    : type === 'heartRate'
-                      ? '72'
-                      : type === 'spo2'
-                        ? '98'
-                        : type === 'weight'
-                          ? '70.5'
-                          : '36.8'
-                }
+                placeholder={placeholderFor(type, units)}
                 keyboardType="decimal-pad"
-                suffix={config.unit}
+                suffix={unitLabel(type, units)}
                 error={showError('value')}
               />
               {type === 'sugar' ? (
@@ -395,8 +405,8 @@ export function LogReadingScreen() {
               ]}
             >
               <Text style={[styles.previewValue, { color: config.color }]}>
-                {readingValueText(previewReading)}
-                <Text style={styles.previewUnit}> {config.unit}</Text>
+                {formatReadingValue(previewReading, units)}
+                <Text style={styles.previewUnit}> {unitLabel(type, units)}</Text>
               </Text>
               {previewStatus ? <StatusBadge status={previewStatus} size="md" /> : null}
             </View>

@@ -1,8 +1,8 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '../components/EmptyState';
@@ -55,13 +55,13 @@ export function HomeScreen() {
             <Text style={styles.greeting}>{greeting()} 👋</Text>
             <Text style={styles.date}>{formatDate(new Date())}</Text>
           </View>
-          <View style={styles.logo}>
-            <MaterialCommunityIcons
-              name="heart-pulse"
-              size={26}
-              color={colors.primary}
-            />
-          </View>
+          <Pressable
+            onPress={() => navigation.navigate('Settings')}
+            style={({ pressed }) => [styles.logo, pressed && styles.logoPressed]}
+            hitSlop={8}
+          >
+            <Ionicons name="settings-outline" size={24} color={colors.primary} />
+          </Pressable>
         </View>
 
         <View style={styles.statsRow}>
@@ -175,6 +175,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoPressed: {
+    opacity: 0.7,
   },
   statsRow: {
     flexDirection: 'row',

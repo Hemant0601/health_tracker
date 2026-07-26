@@ -16,4 +16,5 @@ export type RootStackParamList = {
     | undefined;
   VitalHistory: { memberId: string; type: VitalType };
   Reminders: { memberId: string };
+  Settings: undefined;
 };

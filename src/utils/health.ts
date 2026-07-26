@@ -1,4 +1,4 @@
-import { SUGAR_CONTEXT_LABELS, VITALS } from '../constants/vitals';
+import { SUGAR_CONTEXT_LABELS } from '../constants/vitals';
 import type { Reading } from '../types';
 import { fmtNum } from './format';
 
@@ -96,17 +96,6 @@ export function evaluateReading(reading: Reading): VitalStatus | null {
     case 'weight':
       return null;
   }
-}
-
-/** Main display value, e.g. "120/80" or "98.6". */
-export function readingValueText(reading: Reading): string {
-  if (reading.type === 'bp')
-    return `${fmtNum(reading.systolic)}/${fmtNum(reading.diastolic)}`;
-  return fmtNum(reading.value);
-}
-
-export function readingUnitText(reading: Reading): string {
-  return VITALS[reading.type].unit;
 }
 
 /** Secondary detail, e.g. "Fasting" or "Pulse 72 bpm". */

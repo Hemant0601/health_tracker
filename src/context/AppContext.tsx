@@ -12,9 +12,11 @@ import {
   loadMembers,
   loadReadings,
   loadReminders,
+  loadUnits,
   saveMembers,
   saveReadings,
   saveReminders,
+  saveUnits,
 } from '../storage/storage';
 import type {
   Member,
@@ -26,6 +28,8 @@ import type {
 import type { ParsedImport } from '../utils/csv';
 import { makeId } from '../utils/id';
 import { cancelReminderNotification } from '../utils/notifications';
+import type { UnitPreferences } from '../utils/units';
+import { DEFAULT_UNITS } from '../utils/units';
 
 type NewReminder = Omit<Reminder, 'id' | 'createdAt'>;
 
@@ -51,6 +55,8 @@ interface AppContextValue {
   updateReminder: (id: string, patch: Partial<NewReminder>) => void;
   deleteReminder: (id: string) => void;
   importData: (parsed: ParsedImport) => ImportResult;
+  units: UnitPreferences;
+  updateUnits: (patch: Partial<UnitPreferences>) => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -75,6 +81,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [units, setUnits] = useState<UnitPreferences>(DEFAULT_UNITS);
   const hydrated = useRef(false);
   // Fresh snapshots for actions that read current state without re-binding.
   const membersRef = useRef<Member[]>(members);
@@ -84,11 +91,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const [storedMembers, storedReadings, storedReminders] =
-        await Promise.all([loadMembers(), loadReadings(), loadReminders()]);
+      const [storedMembers, storedReadings, storedReminders, storedUnits] =
+        await Promise.all([
+          loadMembers(),
+          loadReadings(),
+          loadReminders(),
+          loadUnits(),
+        ]);
       setMembers(storedMembers);
       setReadings(sortByTakenAtDesc(storedReadings));
       setReminders(storedReminders);
+      setUnits(storedUnits);
       hydrated.current = true;
       setIsReady(true);
     })();
@@ -105,6 +118,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated.current) void saveReminders(reminders);
   }, [reminders]);
+
+  useEffect(() => {
+    if (hydrated.current) void saveUnits(units);
+  }, [units]);
 
   const addMember = useCallback((data: NewMember): Member => {
     const member: Member = {
@@ -253,6 +270,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, []);
 
+  const updateUnits = useCallback((patch: Partial<UnitPreferences>) => {
+    setUnits((prev) => ({ ...prev, ...patch }));
+  }, []);
+
   const value = useMemo(
     () => ({
       isReady,
@@ -269,6 +290,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateReminder,
       deleteReminder,
       importData,
+      units,
+      updateUnits,
     }),
     [
       isReady,
@@ -285,6 +308,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateReminder,
       deleteReminder,
       importData,
+      units,
+      updateUnits,
     ]
   );
 

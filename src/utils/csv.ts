@@ -15,10 +15,17 @@ import type {
   VitalType,
 } from '../types';
 
-/** A reading parsed from CSV, before a memberId is assigned on import. */
-type ReadingDraft = DistributiveOmit<NewReading, 'memberId'>;
 import { formatTime } from './format';
 import { evaluateReading } from './health';
+import {
+  canonicalFromUnitLabel,
+  displayValue,
+  unitLabel,
+  type UnitPreferences,
+} from './units';
+
+/** A reading parsed from CSV, before a memberId is assigned on import. */
+type ReadingDraft = DistributiveOmit<NewReading, 'memberId'>;
 
 const COLUMNS = [
   'Member',
@@ -71,13 +78,16 @@ function isoDate(d: Date): string {
  */
 export function buildReadingsCsv(
   readings: Reading[],
-  members: Member[]
+  members: Member[],
+  units: UnitPreferences
 ): string {
   const memberById = new Map(members.map((m) => [m.id, m]));
   const lines = [COLUMNS.join(',')];
   for (const r of readings) {
     const m = memberById.get(r.memberId);
     const d = new Date(r.takenAt);
+    // Values and units are written in the user's chosen units; the Unit column
+    // records which unit, so import can convert back regardless of prefs.
     const row: Record<(typeof COLUMNS)[number], string> = {
       Member: m?.name ?? 'Unknown',
       Relation: m?.relation ?? '',
@@ -88,9 +98,9 @@ export function buildReadingsCsv(
       Systolic: r.type === 'bp' ? String(r.systolic) : '',
       Diastolic: r.type === 'bp' ? String(r.diastolic) : '',
       Pulse: r.type === 'bp' && r.pulse != null ? String(r.pulse) : '',
-      Value: r.type !== 'bp' ? String(r.value) : '',
+      Value: r.type !== 'bp' ? String(displayValue(r.type, r.value, units)) : '',
       Context: r.type === 'sugar' ? SUGAR_CONTEXT_LABELS[r.context] : '',
-      Unit: VITALS[r.type].unit,
+      Unit: unitLabel(r.type, units),
       Status: evaluateReading(r)?.label ?? '',
       Date: isoDate(d),
       Time: formatTime(d),
@@ -217,6 +227,7 @@ export function parseReadingsCsv(text: string): ParsedImport {
     pulse: idx('Pulse'),
     value: idx('Value'),
     context: idx('Context'),
+    unit: idx('Unit'),
     timestamp: idx('Timestamp'),
     date: idx('Date'),
     time: idx('Time'),
@@ -298,7 +309,7 @@ export function parseReadingsCsv(text: string): ParsedImport {
         const ctx = LABEL_TO_CONTEXT[at(r, col.context).toLowerCase()];
         reading = {
           type: 'sugar',
-          value: v,
+          value: canonicalFromUnitLabel('sugar', v, at(r, col.unit)),
           context: ctx ?? 'random',
           takenAt,
           note,
@@ -306,7 +317,13 @@ export function parseReadingsCsv(text: string): ParsedImport {
       }
     } else {
       const v = num(at(r, col.value));
-      if (v != null) reading = { type, value: v, takenAt, note };
+      if (v != null)
+        reading = {
+          type,
+          value: canonicalFromUnitLabel(type, v, at(r, col.unit)),
+          takenAt,
+          note,
+        };
     }
 
     if (reading) groups.get(key)!.readings.push(reading);

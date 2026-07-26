@@ -16,15 +16,17 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme';
 import type { Member, Reading } from '../types';
 import { calcAge } from '../utils/format';
-import { readingValueText } from '../utils/health';
+import { formatReadingValue, type UnitPreferences } from '../utils/units';
 
 function MemberCard({
   member,
   readings,
+  units,
   onPress,
 }: {
   member: Member;
   readings: Reading[];
+  units: UnitPreferences;
   onPress: () => void;
 }) {
   const age = calcAge(member.dateOfBirth);
@@ -57,7 +59,7 @@ function MemberCard({
         {latestBp ? (
           <View style={[styles.vitalPill, { backgroundColor: VITALS.bp.softColor }]}>
             <Text style={[styles.vitalPillText, { color: VITALS.bp.color }]}>
-              BP {readingValueText(latestBp)}
+              BP {formatReadingValue(latestBp, units)}
             </Text>
           </View>
         ) : null}
@@ -66,7 +68,7 @@ function MemberCard({
             style={[styles.vitalPill, { backgroundColor: VITALS.sugar.softColor }]}
           >
             <Text style={[styles.vitalPillText, { color: VITALS.sugar.color }]}>
-              Sugar {readingValueText(latestSugar)}
+              Sugar {formatReadingValue(latestSugar, units)}
             </Text>
           </View>
         ) : null}
@@ -81,7 +83,7 @@ function MemberCard({
 export function MembersScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { members, readings } = useApp();
+  const { members, readings, units } = useApp();
   const { exportReadings, importReadings } = useDataTransfer();
 
   return (
@@ -117,6 +119,7 @@ export function MembersScreen() {
           <MemberCard
             member={item}
             readings={readings}
+            units={units}
             onPress={() =>
               navigation.navigate('MemberDetail', { memberId: item.id })
             }

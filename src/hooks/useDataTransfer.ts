@@ -13,7 +13,7 @@ import {
 } from '../utils/csv';
 
 export function useDataTransfer() {
-  const { members, readings, importData } = useApp();
+  const { members, readings, importData, units } = useApp();
   const [busy, setBusy] = useState(false);
 
   /** Share a CSV of the given members' readings (defaults to everyone). */
@@ -29,7 +29,7 @@ export function useDataTransfer() {
       const scope =
         targets.length === 1 ? slugify(targets[0].name) : 'all-members';
       try {
-        const csv = buildReadingsCsv(rows, targets);
+        const csv = buildReadingsCsv(rows, targets, units);
         const shared = await shareCsv(csvFilename(scope), csv);
         if (!shared) {
           Alert.alert(
@@ -42,7 +42,7 @@ export function useDataTransfer() {
         Alert.alert('Something went wrong', 'Could not export the readings.');
       }
     },
-    [members, readings]
+    [members, readings, units]
   );
 
   /** Pick a CSV file and merge its members + readings into the app. */

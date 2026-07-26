@@ -11,10 +11,10 @@ import { HeaderIconButton, ScreenHeader } from '../components/ScreenHeader';
 import { VitalTile } from '../components/VitalTile';
 import { VITAL_ORDER, VITALS } from '../constants/vitals';
 import { useApp, useMember, useMemberReadings } from '../context/AppContext';
+import { useDataTransfer } from '../hooks/useDataTransfer';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import type { Reading, VitalType } from '../types';
-import { buildReadingsCsv, csvFilename, shareCsv, slugify } from '../utils/csv';
 import { calcAge } from '../utils/format';
 
 export function MemberDetailScreen() {
@@ -24,6 +24,7 @@ export function MemberDetailScreen() {
   const { memberId } = route.params;
 
   const { deleteMember } = useApp();
+  const { exportReadings } = useDataTransfer();
   const member = useMember(memberId);
   const memberReadings = useMemberReadings(memberId);
 
@@ -44,26 +45,6 @@ export function MemberDetailScreen() {
     member.gender.charAt(0).toUpperCase() + member.gender.slice(1),
     member.heightCm ? `${member.heightCm} cm` : null,
   ].filter((c): c is string => !!c);
-
-  const exportCsv = async () => {
-    if (memberReadings.length === 0) {
-      Alert.alert('Nothing to export', 'Log a reading first.');
-      return;
-    }
-    try {
-      const csv = buildReadingsCsv(memberReadings, [member]);
-      const shared = await shareCsv(csvFilename(slugify(member.name)), csv);
-      if (!shared) {
-        Alert.alert(
-          'Sharing unavailable',
-          'Sharing is not available on this device.'
-        );
-      }
-    } catch (e) {
-      console.warn('CSV export failed', e);
-      Alert.alert('Something went wrong', 'Could not export the readings.');
-    }
-  };
 
   const confirmDelete = () => {
     Alert.alert(
@@ -143,7 +124,7 @@ export function MemberDetailScreen() {
               label="Export CSV"
               icon="share-outline"
               variant="outline"
-              onPress={() => void exportCsv()}
+              onPress={() => void exportReadings([member])}
             />
           </View>
         </View>

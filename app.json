@@ -2,7 +2,7 @@
   "expo": {
     "name": "Health Tracker",
     "slug": "health-tracker",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "healthtracker",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.healthtracker.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#0D9488",
         "foregroundImage": "./assets/android-icon-foreground.png",

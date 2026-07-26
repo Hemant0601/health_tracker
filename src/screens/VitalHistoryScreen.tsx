@@ -17,6 +17,7 @@ import { colors, spacing } from '../theme';
 import type { BpReading, Reading } from '../types';
 import { fmtNum, formatShortDate } from '../utils/format';
 import { calcBmi } from '../utils/health';
+import { displayValue, referenceNote, unitLabel } from '../utils/units';
 
 const CHART_POINTS = 20;
 
@@ -32,10 +33,11 @@ export function VitalHistoryScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'VitalHistory'>>();
   const { memberId, type } = route.params;
 
-  const { deleteReading } = useApp();
+  const { deleteReading, units } = useApp();
   const member = useMember(memberId);
   const memberReadings = useMemberReadings(memberId);
   const config = VITALS[type];
+  const unit = unitLabel(type, units);
 
   const readings = useMemo(
     () => memberReadings.filter((r) => r.type === type),
@@ -69,11 +71,11 @@ export function VitalHistoryScreen() {
         label: config.label,
         color: config.color,
         points: chartReadings.map((r) =>
-          r.type === 'bp' ? 0 : r.value
+          r.type === 'bp' ? 0 : displayValue(r.type, r.value, units)
         ),
       },
     ];
-  }, [chartReadings, type, config]);
+  }, [chartReadings, type, config, units]);
 
   const stats: Stat[] = useMemo(() => {
     if (readings.length === 0) return [];
@@ -100,7 +102,11 @@ export function VitalHistoryScreen() {
         },
       ];
     }
-    const values = readings.map((r) => (r.type === 'bp' ? 0 : r.value));
+    // Convert to display units first; the affine conversions preserve
+    // mean/min/max ordering, so the stats stay correct.
+    const values = readings.map((r) =>
+      r.type === 'bp' ? 0 : displayValue(r.type, r.value, units)
+    );
     const avg = values.reduce((s, v) => s + v, 0) / values.length;
     const result: Stat[] = [
       { label: 'Average', value: fmtNum(Math.round(avg * 10) / 10) },
@@ -120,7 +126,7 @@ export function VitalHistoryScreen() {
       }
     }
     return result;
-  }, [readings, type, member]);
+  }, [readings, type, member, units]);
 
   const confirmDelete = (reading: Reading) => {
     Alert.alert('Delete reading?', 'This reading will be removed.', [
@@ -141,7 +147,7 @@ export function VitalHistoryScreen() {
             Trend{' '}
             <Text style={styles.cardTitleHint}>
               · last {chartReadings.length}{' '}
-              {chartReadings.length === 1 ? 'reading' : 'readings'}
+              {chartReadings.length === 1 ? 'reading' : 'readings'} · {unit}
             </Text>
           </Text>
           <TrendChart
@@ -172,7 +178,7 @@ export function VitalHistoryScreen() {
           size={18}
           color={colors.textMuted}
         />
-        <Text style={styles.refText}>{config.referenceNote}</Text>
+        <Text style={styles.refText}>{referenceNote(type, units)}</Text>
       </View>
 
       {readings.length > 0 ? (

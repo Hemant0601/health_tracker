@@ -3,14 +3,12 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { VitalConfig } from '../constants/vitals';
+import { useApp } from '../context/AppContext';
 import { colors, radius, shadow, spacing } from '../theme';
 import type { Reading } from '../types';
 import { timeAgo } from '../utils/format';
-import {
-  evaluateReading,
-  readingValueText,
-  STATUS_COLORS,
-} from '../utils/health';
+import { evaluateReading, STATUS_COLORS } from '../utils/health';
+import { formatReadingValue, unitLabel } from '../utils/units';
 
 interface Props {
   config: VitalConfig;
@@ -19,6 +17,7 @@ interface Props {
 }
 
 export function VitalTile({ config, reading, onPress }: Props) {
+  const { units } = useApp();
   const status = reading ? evaluateReading(reading) : null;
   return (
     <Pressable
@@ -46,8 +45,10 @@ export function VitalTile({ config, reading, onPress }: Props) {
       {reading ? (
         <>
           <View style={styles.valueRow}>
-            <Text style={styles.value}>{readingValueText(reading)}</Text>
-            <Text style={styles.unit}>{config.unit}</Text>
+            <Text style={styles.value}>
+              {formatReadingValue(reading, units)}
+            </Text>
+            <Text style={styles.unit}>{unitLabel(config.type, units)}</Text>
           </View>
           <Text style={styles.time}>{timeAgo(reading.takenAt)}</Text>
         </>

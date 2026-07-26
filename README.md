@@ -10,6 +10,7 @@ A React Native (Expo) app to track health vitals for your whole family. Add memb
 - **Live preview** — see the status of a reading as you type, before saving.
 - **Trends** — per-vital history with an SVG trend chart (dual-line for BP), average / lowest / highest stats (computed per component for BP), and BMI (when height is set).
 - **Edit & delete** — tap any reading in a vital's history to correct it, or delete it.
+- **Configurable units** — choose Temperature (°F / °C, Fahrenheit by default), Weight (kg / lb), and Blood Sugar (mg/dL / mmol/L) in Settings. Readings are stored canonically and converted on the fly, so switching units re-displays all history instantly with no data loss.
 - **Daily reminders** — schedule per-member, per-vital local notifications (e.g. "BP check for Dad, daily at 8:00 AM"). Works offline, no push server.
 - **CSV export & import** — share one member's history, or all members in a single file (patient details + every reading). The same file can be imported on another phone, merging members and skipping duplicates — so families can pool readings or hand data to a doctor.
 - **Home dashboard** — greeting, weekly reading count, out-of-range alerts, and recent activity across all members.
@@ -37,11 +38,11 @@ src/
   hooks/        useDataTransfer — CSV export & import flow
   navigation/   Root stack + bottom tabs, typed param lists
   screens/      Home, Members, MemberDetail, MemberForm, LogReading,
-                VitalHistory, Reminders
-  storage/      AsyncStorage data layer
+                VitalHistory, Reminders, Settings
+  storage/      AsyncStorage data layer (members, readings, reminders, units)
   theme/        Colors, spacing, radii, shadows
   types/        Member / Reading / Reminder models
-  utils/        Health-status evaluation, dates, CSV export/import, notifications
+  utils/        Health status, dates, unit conversion, CSV export/import, notifications
 scripts/
   make-icons.js Regenerates the app icon set (no image deps)
 ```
@@ -89,7 +90,9 @@ The `preview` profile in `eas.json` is configured to output an APK (the default 
 | Blood Sugar (post-meal) | < 140 mg/dL | Prediabetic 140–199 · Diabetic ≥ 200 |
 | Heart Rate | 60–100 bpm | Low < 60 · Elevated 101–120 · High > 120 |
 | SpO₂ | 95–100% | Low 90–94 · Critical < 90 |
-| Temperature | 36.1–37.2 °C | Mild fever ≥ 37.3 · Fever ≥ 38 · Critical ≥ 40 |
+| Temperature | 36.1–37.2 °C (97.0–99.0 °F) | Mild fever ≥ 37.3 °C (99.1 °F) · Fever ≥ 38 °C (100.4 °F) · Critical ≥ 40 °C |
 | Weight | — | Trend + BMI when height is set |
+
+Thresholds are evaluated on the canonical value, so classification is identical whichever display unit you pick.
 
 > **Disclaimer:** This app is for personal tracking only and is not a medical device. The status labels are informational and not a diagnosis — always consult a doctor for medical advice.

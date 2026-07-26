@@ -3,14 +3,12 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { VITALS } from '../constants/vitals';
+import { useApp } from '../context/AppContext';
 import { colors, radius, shadow, spacing } from '../theme';
 import type { Member, Reading } from '../types';
 import { formatDateTime } from '../utils/format';
-import {
-  evaluateReading,
-  readingDetailText,
-  readingValueText,
-} from '../utils/health';
+import { evaluateReading, readingDetailText } from '../utils/health';
+import { formatReadingValue, unitLabel } from '../utils/units';
 import { StatusBadge } from './StatusBadge';
 
 interface Props {
@@ -22,6 +20,7 @@ interface Props {
 }
 
 export function ReadingRow({ reading, member, onPress, onDelete }: Props) {
+  const { units } = useApp();
   const config = VITALS[reading.type];
   const status = evaluateReading(reading);
   const detail = readingDetailText(reading);
@@ -51,8 +50,8 @@ export function ReadingRow({ reading, member, onPress, onDelete }: Props) {
       <View style={styles.middle}>
         <View style={styles.titleRow}>
           <Text style={styles.value}>
-            {readingValueText(reading)}
-            <Text style={styles.unit}> {config.unit}</Text>
+            {formatReadingValue(reading, units)}
+            <Text style={styles.unit}> {unitLabel(reading.type, units)}</Text>
           </Text>
           {status ? <StatusBadge status={status} /> : null}
         </View>

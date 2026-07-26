@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { Member, Reading, Reminder } from '../types';
+import type { UnitPreferences } from '../utils/units';
+import { DEFAULT_UNITS } from '../utils/units';
 
 const MEMBERS_KEY = 'health_tracker.members';
 const READINGS_KEY = 'health_tracker.readings';
 const REMINDERS_KEY = 'health_tracker.reminders';
+const UNITS_KEY = 'health_tracker.units';
 
 async function loadJson<T>(key: string, fallback: T): Promise<T> {
   try {
@@ -46,4 +49,14 @@ export function loadReminders(): Promise<Reminder[]> {
 
 export function saveReminders(reminders: Reminder[]): Promise<void> {
   return saveJson(REMINDERS_KEY, reminders);
+}
+
+export async function loadUnits(): Promise<UnitPreferences> {
+  const stored = await loadJson<Partial<UnitPreferences>>(UNITS_KEY, {});
+  // Merge so any newly-added unit dimension falls back to its default.
+  return { ...DEFAULT_UNITS, ...stored };
+}
+
+export function saveUnits(units: UnitPreferences): Promise<void> {
+  return saveJson(UNITS_KEY, units);
 }
