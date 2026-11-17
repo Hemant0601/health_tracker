@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Play bundles are built locally and uploaded by hand — never committed
+release/play/*.aab

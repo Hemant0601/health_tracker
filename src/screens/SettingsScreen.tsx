@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '../components/Card';
@@ -9,6 +9,9 @@ import type { VitalIconName } from '../constants/vitals';
 import { useApp } from '../context/AppContext';
 import { colors, radius, spacing } from '../theme';
 import type { UnitPreferences } from '../utils/units';
+
+// Public copy of docs/privacy-policy.html (GitHub Pages). Required by Google Play.
+const PRIVACY_POLICY_URL = 'https://hemant0601.github.io/health_tracker/privacy-policy.html';
 
 interface UnitRow<K extends keyof UnitPreferences> {
   key: K;
@@ -148,6 +151,30 @@ export function SettingsScreen() {
             rounded. Blood pressure, heart rate and SpO₂ use universal units.
           </Text>
         </View>
+
+        <Text style={styles.sectionTitle}>Privacy &amp; disclaimer</Text>
+        <Card style={styles.card}>
+          <Text style={styles.aboutText}>
+            Everything you record stays on this phone. Health Tracker has no
+            account and sends nothing anywhere. Uninstalling the app deletes your
+            data, so use Export on the Members screen first if you want a copy.
+          </Text>
+          <View style={styles.divider} />
+          <Text style={styles.aboutText}>
+            Health Tracker is for personal record-keeping. The normal and
+            out-of-range labels are general guides, not a diagnosis. It does not
+            diagnose or treat any condition. Talk to your doctor about your
+            readings, and get medical help straight away in an emergency.
+          </Text>
+          <Pressable
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+            accessibilityRole="link"
+            style={styles.linkRow}
+          >
+            <Text style={styles.linkText}>Privacy policy</Text>
+            <MaterialCommunityIcons name="open-in-new" size={16} color={colors.primary} />
+          </Pressable>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -243,6 +270,22 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     marginTop: spacing.lg,
+  },
+  aboutText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: colors.text,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.xs,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
   noteText: {
     flex: 1,
