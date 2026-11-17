@@ -9,7 +9,7 @@ Paste into **Play Console → Grow users → Store presence → Main store listi
 | App category | **Health & Fitness** |
 | Tags | Health tracking · Blood pressure · Diabetes · Family |
 | Contact email | hemantkumar0601@gmail.com |
-| Privacy policy | https://hemant0601.github.io/health_tracker/privacy-policy.html *(after GitHub Pages is switched on — see PLAY_SUBMISSION.md)* |
+| Privacy policy | https://hemant0601.github.io/health_tracker/privacy-policy.html *(live — GitHub Pages switched on 17 Nov 2026)* |
 
 ## Full description (1381/4000)
 

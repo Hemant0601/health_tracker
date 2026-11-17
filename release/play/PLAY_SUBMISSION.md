@@ -19,10 +19,10 @@ contact phone is verified.
 to a password manager or encrypted drive.
 
 ## Before uploading
-1. **Publish the privacy policy:** GitHub → Hemant0601/health_tracker → Settings → Pages →
+1. ✅ **Done 17 Nov 2026** — privacy policy live at https://hemant0601.github.io/health_tracker/privacy-policy.html. (How it was set up: GitHub → Hemant0601/health_tracker → Settings → Pages →
    Source: *Deploy from a branch* → branch `play-store-prep` (or `main` after merging),
    folder `/docs` → Save. Check
-   https://hemant0601.github.io/health_tracker/privacy-policy.html opens.
+   https://hemant0601.github.io/health_tracker/privacy-policy.html opens.)
 2. **Package name:** `com.healthtracker.app` is not listed on Play today, but it is a generic
    name. If Play Console says it's already in use when you create the app, change
    `android.package` in `app.json` to `com.hemant.healthtracker`, then rebuild (below).
