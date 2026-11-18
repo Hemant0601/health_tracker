@@ -17,7 +17,7 @@
       "bundleIdentifier": "com.healthtracker.app"
     },
     "android": {
-      "package": "com.healthtracker.app",
+      "package": "com.hemant.healthtracker",
       "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#0D9488",

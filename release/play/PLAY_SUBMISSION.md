@@ -7,7 +7,7 @@ contact phone is verified.
 ## Ready
 | Item | Where |
 |---|---|
-| Signed AAB, v1.3.0 (versionCode 4), package `com.healthtracker.app`, API 36 | `release/play/HealthTracker-1.3.0-play.aab` |
+| Signed AAB, v1.3.0 (versionCode 4), package `com.hemant.healthtracker`, API 36 | `release/play/HealthTracker-1.3.0-play.aab` |
 | Upload key | `~/keys/healthtracker-upload.jks` + `.properties` (owner-only) |
 | Upload certificate | `~/keys/healthtracker-upload-cert.pem` (SHA-256 54:2F:5F:B6:…:08:A5) |
 | Listing, graphics | `PLAY_LISTING.md`, `graphics/` |
@@ -23,9 +23,9 @@ to a password manager or encrypted drive.
    Source: *Deploy from a branch* → branch `play-store-prep` (or `main` after merging),
    folder `/docs` → Save. Check
    https://hemant0601.github.io/health_tracker/privacy-policy.html opens.)
-2. **Package name:** `com.healthtracker.app` is not listed on Play today, but it is a generic
-   name. If Play Console says it's already in use when you create the app, change
-   `android.package` in `app.json` to `com.hemant.healthtracker`, then rebuild (below).
+2. ✅ **Done 18 Nov 2026** — package name is `com.hemant.healthtracker`: `com.healthtracker.app` was
+   already taken on Play, so `android.package` in `app.json` was changed and the AAB rebuilt.
+   The Play Console app "Health Tracker: Family Vitals" was created with this package.
 3. **App signing:** keep Google's generated app-signing key (default). The old sideload APKs
    were signed with Expo's public debug key, which must not be used for Play. People who
    sideloaded the app must **Export CSV → uninstall → install from Play → Import CSV** to
